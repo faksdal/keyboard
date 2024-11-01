@@ -61,15 +61,41 @@ void enableRawMode()
 
 
 
+int readkey(void)
+{
+	int nread;
+	char c, seq[3];
+
+	while((nread = fread(STDIN_FILENO, &c, 1)) == 0);
+	if(nread == -1)
+		exit(-1);
+
+}
+
+
+
+void processKey(void)
+{
+	char key = readkey();
+
+	switch(key){
+		default:	break;
+	}
+
+}
+
+
+
 int main()
 {
 	char c;
-	
-
 
 	enableRawMode();
 
 	while (1){
+		processKey();
+
+		/*
 		char c = '\0';
 		if(read(STDIN_FILENO, &c, 1) == -1 && errno != EAGAIN)
 			die("read");
@@ -84,8 +110,10 @@ int main()
 		}
 		if(c == CTRL_KEY('q'))
 			break;
+		*/
 	}
 
 
+	disableRawMode();
 	return 0;
 }
