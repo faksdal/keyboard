@@ -1,0 +1,1 @@
+g++ -o nc ncurses.cpp -lncurses
