@@ -1,2 +1,3 @@
 # keyboard
-Learning to catch keystrokes in Linux terminal using c++
+	
+Keyboard input class in c++ for the Linux terminal
