@@ -6,6 +6,13 @@
  */
 #pragma once
 
+enum KEYMAP{
+	TAB			= 9,
+	NUM_ENTER	= 10,
+	KB_ENTER	= 13,
+	ESC			= 27
+};
+
 /*
 --------------------------------------------------------
 |key			|escape|  seq[0]  |  seq[1]  |   seq2]   |seq[3]|

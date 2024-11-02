@@ -55,54 +55,43 @@ int readKey(int _fd)
 	char c = '\0';
 
 	if(read(_fd, &c, 1) == 1){
+		switch(c){
+			case TAB:		return TAB;
+							//break;
+			case NUM_ENTER:	return NUM_ENTER;
+							//break;
+			case KB_ENTER:	return KB_ENTER;
+							//break;
+			case ESC:		// Might be an escape sequence, or just the ESC key,
+							// we have to check...
+							printf("Control key: %d. Reading sequence...\r\n", c);
 
-		/*
-		if(!iscntrl(c)){
-			printf("Not control key: %d - '%c'\r\n", c, c);
-			return c;
-		}
-		else if(iscntrl(c)){
-			char seq[3];
+							// Next read()'s go into this
+							char seq[3];
 
-			printf("Control key: %d. Reading sequence...\r\n", c);
+							// Try to read the first byte into seq[0]
+							// If read() returns 0, it means there are no more
+							// characters in the buffer, indicating the user
+							// pressed ESC.
+							if(read(_fd, &seq[0], 1) == 0){
+								std::cout << "ESC key pressed\r\n" << std::flush;
 
-			if(read(_fd, &seq[0], 1) == 1){
-				printf("seq[0]: %d - '%c'\r\n", seq[0], seq[0]);
-			}
-
-			return c;
-		}*/
-		if(c == 9){
-			std::cout << "TAB key pressed\r\n" << std::flush;
-			return 9;
-		}
-		else if(c == 10){
-			std::cout << "NUMPAD Enter key pressed\r\n" << std::flush;
-			return 10;
-		}
-		else if(c == 13){
-			std::cout << "KEYPAD Enter key pressed\r\n" << std::flush;
-			return 13;
-		}
-		else if(c == 27){
-			printf("Control key: %d. Reading sequence...\r\n", c);
-			char seq[3];
-			if(read(_fd, &seq[0], 1) == 1){
-				printf("seq[0]: %d - '%c'\r\n", seq[0], seq[0]);
-			}
-			if(read(_fd, &seq[1], 1) == 1){
-				printf("seq[1]: %d - '%c'\r\n", seq[1], seq[1]);
-			}
-			if(read(_fd, &seq[2], 1) == 1){
-				printf("seq[2]: %d - '%c'\r\n", seq[2], seq[2]);
-			}
-		}
-		else{// if(c != 27){
-			printf("Not control key: %d - '%c'\r\n", c, c);
-			return c;
+								return ESC;
+							}
+							// Otherwise, if read() returns a non-zero value,
+							// we check to figure out what key the user hit.
+							else{
+								std::cout << "We have an escape sequence...\r\n";
+								printf("seq[0] %d - '%c'\r\n", seq[0], seq[0]);
+								return -1;
+							}
+							//break;
+			default:		printf("Regular key: %d - '%c' pressed\r\n", c, c);
+							return c;
+							//break;
 		}
 
-	}
+	} // if(read(_fd, &c, 1) == 1)
 	return -1;
 }
 
@@ -124,23 +113,25 @@ int main()
 		//char c = 'a';
 		//read(STDIN_FILENO, &c, 1);
 
-		key = readKey(fd);
+		//key = readKey(fd);
 		//printf("Key before switch: %d ('%c')\r\n", key, key);
 
-		if(key != -1){
-
+		//if(key != -1){
+		if((key = readKey(fd)) != -1){
 			switch(key){
-				case 9:		std::cout << "TAB pressed\r\n" << std::endl;
-							break;
-				case 10:	std::cout << "NUMPAD ENTER pressed\r\n" << std::endl;
-							break;
-				case 13:	std::cout << "KEYBOARD ENTER pressed\r\n" << std::endl;
-							break;
-				case 'q':	quit = true;
-							break;
+				case TAB:		std::cout << "TAB pressed\r\n" << std::endl;
+								break;
+				case NUM_ENTER:	std::cout << "NUMPAD ENTER pressed\r\n" << std::endl;
+								break;
+				case KB_ENTER:	std::cout << "KEYBOARD ENTER pressed\r\n" << std::endl;
+								break;
+				case ESC:		std::cout << "ESC pressed\r\n" << std::endl;
+								break;
+				case 'q':		quit = true;
+								break;
 
-				default:	printf("Key at switch default: %d ('%c')\r\n", key, key);
-							break;
+				default:		printf("Key at switch default: %d ('%c')\r\n", key, key);
+								break;
 			} // switch(key)
 		} // if(key != -1)
 
