@@ -1,4 +1,4 @@
 git add --all
-git commit -m"Learning to map keyboard input in Linux terminal"
+git commit -m"Keyboard input class in c++ for the Linux terminal"
 git push
 

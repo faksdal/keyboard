@@ -1,48 +1,47 @@
 /*
- * keymapping.h
+ * keyboard.h
  *
  *  Created on: 2 Nov 2024
  *      Author: jole
  */
 #pragma once
 
-enum class keyState{	NORMAL,
-						ESCAPE_SEQ_0,
-						ESCAPE_SEQ_1,
-						ESCAPE_SEQ_2,
-						ESCAPE_SEQ_3,
-						ESCAPE_SEQ_4
+//#include <unistd.h>
+#include <termios.h>
+
+#include "keymap.h"
+
+
+
+class keyboard{
+
+	enum keyState{	NORMAL,
+					ESCAPE_SEQ_0,
+					ESCAPE_SEQ_1,
+					ESCAPE_SEQ_2,
+					ESCAPE_SEQ_3,
+					ESCAPE_SEQ_4
+	};
+
+	int		fd;
+	struct termios originalTermios;
+
+	void	disableRawMode(void);
+	void	enableRawMode(void);
+
+public:
+	keyboard(int _fd);
+	~keyboard();
+
+	int	readkey(void);
+
 };
 
-enum KEYMAP{
-	TAB			= 9,
-	NUM_ENTER	= 10,
-	KB_ENTER	= 13,
-	ESC			= 27,
-	BK_SP		= 127,
 
-	// These needs to be user defined, since they return regular characters
-	UP_ARROW	= 1000,
-	DOWN_ARROW,
-	RIGHT_ARROW,
-	LEFT_ARROW,
-	F1,
-	F2,
-	F3,
-	F4,
-	HOME,
-	INSERT,
-	DELETE,
-	END,
-	PAGE_UP,
-	PAGE_DOWN
-};
 
 /*
 ----------------------------------------------------------------------
 |key			|escape|  seq[0]  |  seq[1]  |   seq2]   |  seq[3]   |
-----------------------------------------------------------------------
-|state			|escape|  state1  |  state2  |   state3  |  state4   |
 ----------------------------------------------------------------------
 |ESC			|  27  |          |          |           |           |
 |TAB			|   9  |          |          |           |           |
@@ -66,14 +65,13 @@ enum KEYMAP{
 |PAGE_UP		|  27  | 91 - '[' | 53 - '5' | 126 - '~' |           |
 |PAGE_DOWN		|  27  | 91 - '[' | 54 - '6' | 126 - '~' |           |
 ----------------------------------------------------------------------
-|F5				|  27  | 91 - '[' | 49 - '1' | 53 - '5'  | 126 - '~' |
-|F6				|  27  | 91 - '[' | 49 - '1' | 55 - '7'  | 126 - '~' |
-|F7				|  27  | 91 - '[' | 49 - '1' | 56 - '8'  | 126 - '~' |
-|F8				|  27  | 91 - '[' | 49 - '1' | 57 - '9'  | 126 - '~' |
 |F9				|  27  | 91 - '[' | 50 - '2' | 48 - '0'  | 126 - '~' |
 |F10			|  27  | 91 - '[' | 50 - '2' | 49 - '1'  | 126 - '~' |
 |F11			|  27  | 91 - '[' | 50 - '2' | 51 - '3'  | 126 - '~' |
 |F12			|  27  | 91 - '[' | 50 - '2' | 52 - '4'  | 126 - '~' |
+|F5				|  27  | 91 - '[' | 49 - '1' | 53 - '5'  | 126 - '~' |
+|F6				|  27  | 91 - '[' | 49 - '1' | 55 - '7'  | 126 - '~' |
+|F7				|  27  | 91 - '[' | 49 - '1' | 56 - '8'  | 126 - '~' |
+|F8				|  27  | 91 - '[' | 49 - '1' | 57 - '9'  | 126 - '~' |
 ----------------------------------------------------------------------
-
 */
