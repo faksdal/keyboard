@@ -66,23 +66,44 @@ int readKey(int _fd)
 							// we have to check...
 							printf("Control key: %d. Reading sequence...\r\n", c);
 
-							// Next read()'s go into this
+							// Next FEW read() go into seq[]
 							char seq[3];
 
-							// Try to read the first byte into seq[0]
+							// Try to read the NEXT byte into seq[0]
 							// If read() returns 0, it means there are no more
 							// characters in the buffer, indicating the user
 							// pressed ESC.
 							if(read(_fd, &seq[0], 1) == 0){
 								std::cout << "ESC key pressed\r\n" << std::flush;
-
 								return ESC;
 							}
+
 							// Otherwise, if read() returns a non-zero value,
 							// we check to figure out what key the user hit.
 							else{
+								// read the next byte, exit if fail
+								if(read(_fd, &seq[1], 1) == -1)
+									exit(-1);
+
 								std::cout << "We have an escape sequence...\r\n";
 								printf("seq[0] %d - '%c'\r\n", seq[0], seq[0]);
+								printf("seq[1] %d - '%c'\r\n", seq[1], seq[1]);
+
+								// if seq[0] = 91, we need to check seq[1]
+								if(seq[0] == 91){
+
+								}
+
+								/*
+								if(read(_fd, &seq[1], 1) == 1){
+									printf("seq[1] %d - '%c'\r\n", seq[1], seq[1]);
+
+
+
+									if(read(_fd, &seq[2], 1) == 1)
+										printf("seq[2] %d - '%c'\r\n", seq[2], seq[2]);
+								}
+								*/
 								return -1;
 							}
 							//break;
