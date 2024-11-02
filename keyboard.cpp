@@ -52,68 +52,83 @@ void processKey(int _fd)
 
 int readKey(int _fd)
 {
-	char c = '\0';
+	int			seqCnt = 0, retkey = -1;
+	keyState	state = keyState::NORMAL;
+	char		c = '\0';
+	char		seq[4];
 
 	if(read(_fd, &c, 1) == 1){
-		switch(c){
-			case TAB:		return TAB;
-							//break;
-			case NUM_ENTER:	return NUM_ENTER;
-							//break;
-			case KB_ENTER:	return KB_ENTER;
-							//break;
-			case ESC:		// Might be an escape sequence, or just the ESC key,
-							// we have to check...
-							printf("Control key: %d. Reading sequence...\r\n", c);
+		// If we encounter an escape sequence, we start populate the seq[]
+		// and set the appropriate state value
+		if(c == 27){
+			// If we have indications of an escape sequence, we try another
+			// read()
+			state = keyState::ESCAPE_SEQ_0;
+			if(read(_fd, &seq[seqCnt], 1) > 0){
+				seqCnt++;
+				state = keyState::ESCAPE_SEQ_1;
+				if(read(_fd, &seq[seqCnt], 1) > 0){
+					seqCnt++;
+					state = keyState::ESCAPE_SEQ_2;
+					if(read(_fd, &seq[seqCnt], 1) > 0){
+						seqCnt++;
+						state = keyState::ESCAPE_SEQ_3;
+						if(read(_fd, &seq[seqCnt], 1) > 0){
+							state = keyState::ESCAPE_SEQ_4;
+						}
+					}
+				}
+			}
 
-							// Next FEW read() go into seq[]
-							char seq[3];
-
-							// Try to read the NEXT byte into seq[0]
-							// If read() returns 0, it means there are no more
-							// characters in the buffer, indicating the user
-							// pressed ESC.
-							if(read(_fd, &seq[0], 1) == 0){
-								std::cout << "ESC key pressed\r\n" << std::flush;
-								return ESC;
-							}
-
-							// Otherwise, if read() returns a non-zero value,
-							// we check to figure out what key the user hit.
-							else{
-								// read the next byte, exit if fail
-								if(read(_fd, &seq[1], 1) == -1)
-									exit(-1);
-
-								std::cout << "We have an escape sequence...\r\n";
-								printf("seq[0] %d - '%c'\r\n", seq[0], seq[0]);
-								printf("seq[1] %d - '%c'\r\n", seq[1], seq[1]);
-
-								// if seq[0] = 91, we need to check seq[1]
-								if(seq[0] == 91){
-
-								}
-
-								/*
-								if(read(_fd, &seq[1], 1) == 1){
-									printf("seq[1] %d - '%c'\r\n", seq[1], seq[1]);
-
-
-
-									if(read(_fd, &seq[2], 1) == 1)
-										printf("seq[2] %d - '%c'\r\n", seq[2], seq[2]);
-								}
-								*/
-								return -1;
-							}
-							//break;
-			default:		printf("Regular key: %d - '%c' pressed\r\n", c, c);
-							return c;
-							//break;
+		} // if(c = 27)
+		switch(state){
+			case keyState::NORMAL:			retkey = c;
+											break;
+			case keyState::ESCAPE_SEQ_0:	retkey = ESC;
+											break;
+			case keyState::ESCAPE_SEQ_1:	break;
+			case keyState::ESCAPE_SEQ_2:	switch(seq[1]){
+												case 65:	retkey = UP_ARROW;
+															break;
+												case 66:	retkey = DOWN_ARROW;
+															break;
+												case 67:	retkey = RIGHT_ARROW;
+															break;
+												case 68:	retkey = LEFT_ARROW;
+															break;
+												case 80:	retkey = F1;
+															break;
+												case 81:	retkey = F2;
+															break;
+												case 82:	retkey = F3;
+															break;
+												case 83:	retkey = F4;
+															break;
+											}
+											break;
+			case keyState::ESCAPE_SEQ_3:	switch(seq[1]){
+												case 49:	retkey = HOME;
+															break;
+												case 50:	retkey = INSERT;
+															break;
+												case 51:	retkey = DELETE;
+															break;
+												case 52:	retkey = END;
+															break;
+												case 53:	retkey = PAGE_UP;
+															break;
+												case 54:	retkey = PAGE_DOWN;
+															break;
+											}
+											break;
+			case keyState::ESCAPE_SEQ_4:	std::cout << "keyState::ESCAPE_SEQ_4\r\n" << std::flush;
+											break;
+			default:						break;
 		}
 
 	} // if(read(_fd, &c, 1) == 1)
-	return -1;
+
+	return retkey;
 }
 
 
@@ -140,16 +155,43 @@ int main()
 		//if(key != -1){
 		if((key = readKey(fd)) != -1){
 			switch(key){
-				case TAB:		std::cout << "TAB pressed\r\n" << std::endl;
-								break;
-				case NUM_ENTER:	std::cout << "NUMPAD ENTER pressed\r\n" << std::endl;
-								break;
-				case KB_ENTER:	std::cout << "KEYBOARD ENTER pressed\r\n" << std::endl;
-								break;
-				case ESC:		std::cout << "ESC pressed\r\n" << std::endl;
-								break;
-				case 'q':		quit = true;
-								break;
+				case TAB:			std::cout << "TAB pressed\r\n" << std::endl;
+									break;
+				case NUM_ENTER:		std::cout << "NUMPAD ENTER pressed\r\n" << std::endl;
+									break;
+				case KB_ENTER:		std::cout << "KEYBOARD ENTER pressed\r\n" << std::endl;
+									break;
+				case ESC:			std::cout << "ESC pressed - quitting...\r\n" << std::endl;
+									quit = true;
+									break;
+				case UP_ARROW:		std::cout << "UP_ARROW\r\n" << std::flush;
+									break;
+				case DOWN_ARROW:	std::cout << "DOWN_ARROW\r\n" << std::flush;
+									break;
+				case RIGHT_ARROW:	std::cout << "RIGHT_ARROW\r\n" << std::flush;
+									break;
+				case LEFT_ARROW:	std::cout << "LEFT_ARROW\r\n" << std::flush;
+									break;
+				case F1:			std::cout << "F1\r\n" << std::flush;
+									break;
+				case F2:			std::cout << "F2\r\n" << std::flush;
+									break;
+				case F3:			std::cout << "F3\r\n" << std::flush;
+									break;
+				case F4:			std::cout << "F4\r\n" << std::flush;
+									break;
+				case HOME:			std::cout << "HOME\r\n" << std::flush;
+									break;
+				case END:			std::cout << "END\r\n" << std::flush;
+									break;
+				case INSERT:		std::cout << "INSERT\r\n" << std::flush;
+									break;
+				case DELETE:		std::cout << "DELETE\r\n" << std::flush;
+									break;
+				case PAGE_UP:		std::cout << "PAGE_UP\r\n" << std::flush;
+									break;
+				case PAGE_DOWN:		std::cout << "PAGE_DOWN\r\n" << std::flush;
+									break;
 
 				default:		printf("Key at switch default: %d ('%c')\r\n", key, key);
 								break;
